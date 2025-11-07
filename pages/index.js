@@ -27,14 +27,20 @@ export default function Chatbot() {
     <div className="flex flex-col w-full h-screen bg-gradient-to-br from-[#2A3F73] via-[#F7972B] to-[#898D8E]">
       {/* Header */}
       <div className="flex flex-col items-center justify-center py-8">
-        /Designer.png
-        <h1 className="text-white text-2xl font-bold mt-4 text-center">
-          Tu asistente en Derechos Humanos✨
+        <Image
+          src="/logo-oudh.jpg"
+          alt="Logo OUDH"
+          width={180}
+          height={180}
+          className="rounded-full shadow-lg border-4 border-white"
+        />
+        <h1 className="text-white text-3xl font-bold mt-4 text-center drop-shadow-lg">
+          Tu asistente en Derechos Humanos ✨
         </h1>
       </div>
 
       {/* Chat messages */}
-      <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-white bg-opacity-90 rounded-t-3xl">
+      <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-white bg-opacity-90 rounded-t-3xl shadow-inner">
         {messages.map((msg, i) => (
           <div
             key={i}
@@ -69,3 +75,4 @@ export default function Chatbot() {
       </div>
     </div>
   );
+}
