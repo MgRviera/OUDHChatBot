@@ -7,7 +7,10 @@ export default function UploadPage() {
   const [loading, setLoading] = useState(false);
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file) {
+      setStatus("⚠️ Selecciona un archivo antes de subir.");
+      return;
+    }
 
     setStatus("Subiendo...");
     setLoading(true);
@@ -21,14 +24,12 @@ export default function UploadPage() {
         body: formData,
       });
 
-      if (!res.ok) {
-        throw new Error("Error en la subida");
-      }
+      if (!res.ok) throw new Error("Error en la subida");
 
       const data = await res.json();
-      setStatus(`✅ Archivo subido correctamente: ${data.url}`);
+      setStatus(`✅ Archivo subido correctamente:\n${data.url}`);
     } catch (error) {
-      console.error(error);
+      console.error("Error al subir:", error);
       setStatus("❌ Error al subir el archivo");
     } finally {
       setLoading(false);
@@ -38,17 +39,21 @@ export default function UploadPage() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Subir archivo Excel</h1>
+
       <input
         type="file"
         accept=".xlsx,.xls"
         onChange={(e) => setFile(e.target.files[0])}
-        className="mb-4"
+        className="mb-4 block"
       />
+
       <button
         onClick={handleUpload}
         disabled={!file || loading}
-        className={`px-4 py-2 rounded ${
-          loading ? "bg-gray-400" : "bg-blue-600 text-white"
+        className={`px-4 py-2 rounded transition ${
+          loading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700 text-white"
         }`}
       >
         {loading ? (
@@ -79,7 +84,8 @@ export default function UploadPage() {
           "Subir"
         )}
       </button>
-      <p className="mt-4">{status}</p>
+
+      <pre className="mt-4 whitespace-pre-wrap">{status}</pre>
     </div>
   );
 }
