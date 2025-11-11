@@ -1,6 +1,5 @@
 import { put } from "@vercel/blob";
 import formidable from "formidable";
-import fs from "fs/promises";
 
 export const config = {
   api: {
@@ -21,10 +20,10 @@ export default async function handler(req, res) {
     console.log("Archivo recibido:", file);
 
     try {
-      // Leer el archivo como buffer
-      const fileBuffer = await fs.readFile(file.filepath);
+      // ✅ Convertir el archivo a Buffer usando formidable
+      const fileBuffer = await file.toBuffer();
 
-      // Subir el buffer a Vercel Blob
+      // ✅ Subir el buffer a Vercel Blob
       const blob = await put(file.originalFilename, fileBuffer, {
         access: "public",
         token: process.env.BLOB_READ_WRITE_TOKEN,
