@@ -1,6 +1,6 @@
 import { put } from "@vercel/blob";
 import formidable from "formidable";
-import fs from "fs";
+import fs from "fs/promises";
 
 export const config = {
   api: {
@@ -13,24 +13,19 @@ export default async function handler(req, res) {
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
-      console.error("Error al parsear el formulario:", err);
+      console.error("Error al parsear:", err);
       return res.status(500).json({ error: "Error al procesar el archivo" });
     }
 
     const file = files.file;
     console.log("Archivo recibido:", file);
 
-    const stream = fs.createReadStream(file.filepath);
-
-    // ✅ Verificar que el token existe antes de subir
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      console.error("Token BLOB_READ_WRITE_TOKEN no definido");
-      return res.status(500).json({ error: "Token no configurado en Vercel" });
-    }
-
     try {
-      console.log("Subiendo a Vercel Blob...");
-      const blob = await put(file.originalFilename, stream, {
+      // Leer el archivo como buffer
+      const fileBuffer = await fs.readFile(file.filepath);
+
+      // Subir el buffer a Vercel Blob
+      const blob = await put(file.originalFilename, fileBuffer, {
         access: "public",
         token: process.env.BLOB_READ_WRITE_TOKEN,
       });
