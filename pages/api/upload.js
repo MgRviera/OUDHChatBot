@@ -4,38 +4,47 @@ import fs from "fs";
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // ❗ Necesario para manejar multipart/form-data
   },
 };
 
 export default async function handler(req, res) {
-  const form = formidable({ multiples: false });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
+
+  const form = formidable({ multiples: false, keepExtensions: true });
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
-      console.error("Error al parsear:", err);
+      console.error("Error al parsear el archivo:", err);
       return res.status(500).json({ error: "Error al procesar el archivo" });
     }
 
-    const file = files.file; // 👈 el archivo subido
-    console.log("Archivo recibido:", file);
+    // 🧩 Manejar correctamente si `files.file` es array o no
+    const file = Array.isArray(files.file) ? files.file[0] : files.file;
+
+    if (!file || !file.filepath) {
+      console.error("Archivo no válido:", file);
+      return res.status(400).json({ error: "No se recibió un archivo válido" });
+    }
 
     try {
-      // ✅ Leer el archivo desde el sistema temporal de Vercel
+      // ✅ Leer el archivo desde el sistema temporal
       const fileBuffer = await fs.promises.readFile(file.filepath);
 
-      // ✅ Subir el buffer a Vercel Blob
+      // ✅ Subir a Vercel Blob
       const blob = await put(file.originalFilename, fileBuffer, {
         access: "public",
-        contentType: file.mimetype,
-        token: process.env.BLOB_READ_WRITE_TOKEN, // asegúrate de tenerla configurada
+        contentType: file.mimetype || "application/octet-stream",
+        token: process.env.BLOB_READ_WRITE_TOKEN, // ⚠️ debe estar configurado en Vercel
       });
 
-      console.log("Subida exitosa:", blob.url);
-      res.status(200).json({ url: blob.url });
+      console.log("Archivo subido con éxito:", blob.url);
+      return res.status(200).json({ url: blob.url });
     } catch (error) {
       console.error("Error al subir a Vercel Blob:", error);
-      res.status(500).json({ error: "Error al subir a Vercel Blob" });
+      return res.status(500).json({ error: "Error al subir a Vercel Blob" });
     }
   });
 }
